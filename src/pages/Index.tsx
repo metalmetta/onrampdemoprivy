@@ -47,7 +47,7 @@ const Index = () => {
             onClick={handleGetStarted}
             className="h-12 px-8 text-lg animate-fade-in hover:scale-105 transition-transform"
           >
-            Get Started
+            Access Fluida
           </Button>
         </motion.div>
 
