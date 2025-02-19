@@ -11,7 +11,7 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const PRIVY_APP_ID = "cltyqzle400011np6o0urew8s"; // Using a valid Privy App ID
+const PRIVY_APP_ID = "cm7ae13h401kawj3tomldpsrf"; // Using provided Privy App ID
 
 const App = () => (
   <PrivyProvider
