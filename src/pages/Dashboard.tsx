@@ -4,16 +4,40 @@ import { useNavigate } from "react-router-dom";
 import { usePrivy } from "@privy-io/react-auth";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useToast } from "@/components/ui/use-toast";
+import { base } from "viem/chains";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { ready, authenticated, user, logout } = usePrivy();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (ready && !authenticated) {
       navigate("/");
     }
   }, [ready, authenticated, navigate]);
+
+  useEffect(() => {
+    if (user?.wallet?.address) {
+      toast({
+        title: "Fund Your Wallet",
+        description: "Add funds to get started with crypto payments",
+        action: (
+          <Button
+            onClick={() => {
+              window.open(`https://bridge.base.org/deposit`, '_blank');
+            }}
+            variant="default"
+            size="sm"
+          >
+            Fund Wallet
+          </Button>
+        ),
+        duration: 10000,
+      });
+    }
+  }, [user?.wallet?.address]);
 
   if (!ready || !authenticated) {
     return (
