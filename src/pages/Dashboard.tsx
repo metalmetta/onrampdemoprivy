@@ -29,7 +29,7 @@ const Dashboard = () => {
             onClick={() => {
               fundWallet(user.wallet.address, {
                 chain: base,
-                amount: 0.01
+                amount: "0.01"
               });
             }}
             variant="default"
