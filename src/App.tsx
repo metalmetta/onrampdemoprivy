@@ -18,12 +18,15 @@ if (!import.meta.env.VITE_PRIVY_APP_ID) {
 
 const App = () => (
   <PrivyProvider
-    appId={import.meta.env.VITE_PRIVY_APP_ID || "cm7ae13h401kawj3tomldpsrf"}
+    appId={import.meta.env.VITE_PRIVY_APP_ID}
     config={{
       loginMethods: ['email', 'wallet'],
       appearance: {
         theme: 'light',
-        accentColor: '#2D7D6F'
+        accentColor: '#2D7D6F',
+      },
+      defaultChain: {
+        name: 'Base',
       },
     }}
   >
