@@ -18,12 +18,7 @@ const App = () => (
       loginMethods: ['email', 'wallet'],
       appearance: {
         theme: 'light',
-        accentColor: '#2D7D6F',
-        variables: {
-          colorBackground: '#ffffff',
-          colorText: '#1f2937',
-          borderRadius: '0.5rem',
-        },
+        accentColor: '#2D7D6F'
       },
     }}
   >
