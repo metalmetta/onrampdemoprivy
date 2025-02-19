@@ -13,7 +13,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <PrivyProvider
-    appId={process.env.PRIVY_APP_ID || ""}
+    appId={import.meta.env.VITE_PRIVY_APP_ID || ""}
     config={{
       loginMethods: ['email', 'wallet'],
       appearance: {
