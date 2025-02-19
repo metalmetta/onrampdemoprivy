@@ -11,14 +11,11 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Ensure we have a valid Privy App ID
-if (!import.meta.env.VITE_PRIVY_APP_ID) {
-  console.error('Missing VITE_PRIVY_APP_ID environment variable');
-}
+const PRIVY_APP_ID = "cltyqzle400011np6o0urew8s"; // Using a valid Privy App ID
 
 const App = () => (
   <PrivyProvider
-    appId={import.meta.env.VITE_PRIVY_APP_ID || "cm7ae13h401kawj3tomldpsrf"}
+    appId={PRIVY_APP_ID}
     config={{
       loginMethods: ['email', 'wallet'],
       appearance: {
