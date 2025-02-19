@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, useFundWallet } from "@privy-io/react-auth";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
@@ -11,6 +11,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { ready, authenticated, user, logout } = usePrivy();
   const { toast } = useToast();
+  const { fundWallet } = useFundWallet();
 
   useEffect(() => {
     if (ready && !authenticated) {
@@ -26,7 +27,10 @@ const Dashboard = () => {
         action: (
           <Button
             onClick={() => {
-              window.open(`https://bridge.base.org/deposit`, '_blank');
+              fundWallet(user.wallet.address, {
+                chain: base,
+                amount: 0.01
+              });
             }}
             variant="default"
             size="sm"
@@ -37,7 +41,7 @@ const Dashboard = () => {
         duration: 10000,
       });
     }
-  }, [user?.wallet?.address]);
+  }, [user?.wallet?.address, fundWallet]);
 
   if (!ready || !authenticated) {
     return (
