@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePrivy, useFundWallet } from "@privy-io/react-auth";
@@ -6,8 +5,17 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { base } from "viem/chains";
-import { formatEther } from "viem";
+import { formatEther, parseEther } from "viem";
 import { createPublicClient, http } from "viem";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -15,6 +23,9 @@ const Dashboard = () => {
   const { toast } = useToast();
   const { fundWallet } = useFundWallet();
   const [balance, setBalance] = useState<string>("0");
+  const [recipientAddress, setRecipientAddress] = useState("");
+  const [amount, setAmount] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   const publicClient = createPublicClient({
     chain: base,
@@ -54,6 +65,39 @@ const Dashboard = () => {
 
     return () => clearInterval(intervalId);
   }, [user?.wallet?.address, publicClient, toast]);
+
+  const handleSendEth = async () => {
+    if (!user?.wallet) return;
+    
+    try {
+      setIsSending(true);
+      const amountInWei = parseEther(amount);
+      
+      await user.wallet.sendTransaction({
+        to: recipientAddress,
+        value: amountInWei,
+        chainId: base.id
+      });
+
+      toast({
+        title: "Success",
+        description: "Transaction sent successfully",
+      });
+
+      // Reset form
+      setRecipientAddress("");
+      setAmount("");
+    } catch (error) {
+      console.error("Error sending transaction:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send transaction",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   useEffect(() => {
     if (user?.wallet?.address) {
@@ -129,7 +173,46 @@ const Dashboard = () => {
             <h2 className="text-lg font-semibold text-gray-900">
               Recent Transactions
             </h2>
-            <Button>Send ETH</Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>Send ETH</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Send ETH</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="recipient">Recipient Address</Label>
+                    <Input
+                      id="recipient"
+                      placeholder="0x..."
+                      value={recipientAddress}
+                      onChange={(e) => setRecipientAddress(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Amount (ETH)</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      step="0.000001"
+                      min="0"
+                      placeholder="0.0"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    className="w-full"
+                    onClick={handleSendEth}
+                    disabled={isSending || !recipientAddress || !amount}
+                  >
+                    {isSending ? "Sending..." : "Send"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="text-center py-8 text-gray-500">
