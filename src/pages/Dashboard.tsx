@@ -34,7 +34,9 @@ const Dashboard = () => {
           const walletBalance = await publicClient.getBalance({
             address: user.wallet.address as `0x${string}`
           });
-          setBalance(formatEther(walletBalance));
+          // Format the balance to 6 decimal places
+          const formattedBalance = parseFloat(formatEther(walletBalance)).toFixed(6);
+          setBalance(formattedBalance);
         } catch (error) {
           console.error("Error fetching balance:", error);
           toast({
