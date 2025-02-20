@@ -1,23 +1,57 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePrivy, useFundWallet } from "@privy-io/react-auth";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { base } from "viem/chains";
+import { formatEther } from "viem";
+import { createPublicClient, http } from "viem";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { ready, authenticated, user, logout } = usePrivy();
   const { toast } = useToast();
   const { fundWallet } = useFundWallet();
+  const [balance, setBalance] = useState<string>("0");
+
+  const publicClient = createPublicClient({
+    chain: base,
+    transport: http()
+  });
 
   useEffect(() => {
     if (ready && !authenticated) {
       navigate("/");
     }
   }, [ready, authenticated, navigate]);
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (user?.wallet?.address) {
+        try {
+          const walletBalance = await publicClient.getBalance({
+            address: user.wallet.address as `0x${string}`
+          });
+          setBalance(formatEther(walletBalance));
+        } catch (error) {
+          console.error("Error fetching balance:", error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch wallet balance",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+
+    fetchBalance();
+    // Set up an interval to refresh the balance every 30 seconds
+    const intervalId = setInterval(fetchBalance, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [user?.wallet?.address, publicClient, toast]);
 
   useEffect(() => {
     if (user?.wallet?.address) {
@@ -70,20 +104,16 @@ const Dashboard = () => {
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
         >
           <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Wallet Address</h3>
+            <p className="text-sm font-mono break-all">{user?.wallet?.address}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-sm font-medium text-gray-500 mb-1">Balance</h3>
-            <p className="text-2xl font-semibold text-gray-900">$0.00</p>
+            <p className="text-2xl font-semibold text-gray-900">{balance} ETH</p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">
-              Pending Invoices
-            </h3>
-            <p className="text-2xl font-semibold text-gray-900">0</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">
-              Total Paid
-            </h3>
-            <p className="text-2xl font-semibold text-gray-900">$0.00</p>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Network</h3>
+            <p className="text-lg font-semibold text-gray-900">Base</p>
           </div>
         </motion.div>
 
@@ -95,13 +125,13 @@ const Dashboard = () => {
         >
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-gray-900">
-              Recent Invoices
+              Recent Transactions
             </h2>
-            <Button>New Invoice</Button>
+            <Button>Send ETH</Button>
           </div>
 
           <div className="text-center py-8 text-gray-500">
-            No invoices yet. Create your first invoice to get started.
+            No transactions yet. Send your first transaction to get started.
           </div>
         </motion.div>
       </main>
