@@ -161,17 +161,21 @@ const Dashboard = () => {
 
   const handleFundWallet = () => {
     if (!user?.wallet?.address) return;
+    
+    const amount = bridgeAmount ? bridgeAmount : "1.00"; // Use input amount or default to 1.00
+    
     const newTopUp: TopUp = {
       id: crypto.randomUUID(),
-      amount: 1.00,
+      amount: parseFloat(amount),
       method: 'CARD',
       status: 'PENDING',
       date: new Date()
     };
     setTopUps(prev => [newTopUp, ...prev]);
+    
     fundWallet(user.wallet.address, {
       chain: base,
-      amount: "1.00"
+      amount: amount
     });
   };
 
@@ -279,6 +283,7 @@ const Dashboard = () => {
                 </Button>
                 <Button 
                   onClick={handleFundWallet}
+                  disabled={!bridgeAmount}
                   className="w-full"
                 >
                   Top-up via card
