@@ -116,6 +116,39 @@ const Dashboard = () => {
     }
   };
 
+  const handleSendEth = async () => {
+    if (!user?.wallet) return;
+    
+    try {
+      setIsSending(true);
+      const amountInWei = parseEther(amount);
+      
+      await user.wallet.sendTransaction({
+        to: recipientAddress,
+        value: amountInWei,
+        chainId: base.id
+      });
+
+      toast({
+        title: "Success",
+        description: "Transaction sent successfully",
+      });
+
+      // Reset form
+      setRecipientAddress("");
+      setAmount("");
+    } catch (error) {
+      console.error("Error sending transaction:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send transaction",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const handleFundWallet = () => {
     if (!user?.wallet?.address) return;
     fundWallet(user.wallet.address, {
