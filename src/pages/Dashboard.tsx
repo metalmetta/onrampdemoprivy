@@ -31,22 +31,22 @@ interface TopUp {
 
 const MOCK_BILLS: Bill[] = [{
   id: '1',
-  vendor: 'Electric Company',
-  amount: 150.00,
+  vendor: 'Acme Limited',
+  amount: 1500.00,
   receivedDate: new Date(2024, 2, 1),
   dueDate: new Date(2024, 3, 15),
   status: 'UNPAID'
 }, {
   id: '2',
-  vendor: 'Water Services',
-  amount: 75.50,
+  vendor: 'SpaceX',
+  amount: 8500.00,
   receivedDate: new Date(2024, 2, 5),
   dueDate: new Date(2024, 3, 20),
   status: 'PENDING'
 }, {
   id: '3',
-  vendor: 'Internet Provider',
-  amount: 89.99,
+  vendor: 'Campbell Soup',
+  amount: 2400.00,
   receivedDate: new Date(2024, 2, 1),
   dueDate: new Date(2024, 3, 10),
   status: 'PAID'
