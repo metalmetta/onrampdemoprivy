@@ -6,17 +6,9 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { base } from "viem/chains";
-import { formatEther, parseEther } from "viem";
+import { formatEther } from "viem";
 import { createPublicClient, http } from "viem";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -24,10 +16,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const { fundWallet } = useFundWallet();
   const [balance, setBalance] = useState<string>("0");
-  const [recipientAddress, setRecipientAddress] = useState("");
-  const [amount, setAmount] = useState("");
   const [bridgeAmount, setBridgeAmount] = useState("");
-  const [isSending, setIsSending] = useState(false);
   const [isBridging, setIsBridging] = useState(false);
 
   const publicClient = createPublicClient({
@@ -116,39 +105,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleSendEth = async () => {
-    if (!user?.wallet) return;
-    
-    try {
-      setIsSending(true);
-      const amountInWei = parseEther(amount);
-      
-      await user.wallet.sendTransaction({
-        to: recipientAddress,
-        value: amountInWei,
-        chainId: base.id
-      });
-
-      toast({
-        title: "Success",
-        description: "Transaction sent successfully",
-      });
-
-      // Reset form
-      setRecipientAddress("");
-      setAmount("");
-    } catch (error) {
-      console.error("Error sending transaction:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send transaction",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSending(false);
-    }
-  };
-
   const handleFundWallet = () => {
     if (!user?.wallet?.address) return;
     fundWallet(user.wallet.address, {
@@ -227,54 +183,8 @@ const Dashboard = () => {
           transition={{ duration: 0.4, delay: 0.2 }}
           className="bg-white rounded-lg shadow-sm p-6"
         >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Recent Transactions
-            </h2>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>Send ETH</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Send ETH</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="recipient">Recipient Address</Label>
-                    <Input
-                      id="recipient"
-                      placeholder="0x..."
-                      value={recipientAddress}
-                      onChange={(e) => setRecipientAddress(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="amount">Amount (ETH)</Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      step="0.000001"
-                      min="0"
-                      placeholder="0.0"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                    />
-                  </div>
-                  <Button
-                    className="w-full"
-                    onClick={handleSendEth}
-                    disabled={isSending || !recipientAddress || !amount}
-                  >
-                    {isSending ? "Sending..." : "Send"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
           <div className="text-center py-8 text-gray-500">
-            No transactions yet. Send your first transaction to get started.
+            Your transactions will appear here once you start using your wallet.
           </div>
         </motion.div>
       </main>
