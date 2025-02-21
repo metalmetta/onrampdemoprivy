@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePrivy, useFundWallet } from "@privy-io/react-auth";
@@ -29,6 +28,11 @@ const Dashboard = () => {
   const [bridgeAmount, setBridgeAmount] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isBridging, setIsBridging] = useState(false);
+  const [recentBills, setRecentBills] = useState([
+    { id: 1, description: "Electricity Bill", amount: "50.00" },
+    { id: 2, description: "Water Bill", amount: "30.00" },
+    { id: 3, description: "Internet Bill", amount: "70.00" },
+  ]);
 
   const publicClient = createPublicClient({
     chain: base,
@@ -241,57 +245,30 @@ const Dashboard = () => {
         >
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-gray-900">
-              Recent Transactions
+              Recent Bills
             </h2>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>Pay Bill</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Pay Bill</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="recipient">Recipient Address</Label>
-                    <Input
-                      id="recipient"
-                      placeholder="0x..."
-                      value={recipientAddress}
-                      onChange={(e) => setRecipientAddress(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="amount">Amount (ETH)</Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      step="0.000001"
-                      min="0"
-                      placeholder="0.0"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                    />
-                  </div>
-                  <Button
-                    className="w-full"
-                    onClick={handleSendEth}
-                    disabled={isSending || !recipientAddress || !amount}
-                  >
-                    {isSending ? "Sending..." : "Send"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
           </div>
-
-          <div className="text-center py-8 text-gray-500">
-            No transactions yet. Send your first transaction to get started.
+          <div className="space-y-4">
+            {recentBills.map((bill) => (
+              <div key={bill.id} className="flex justify-between items-center">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">{bill.description}</p>
+                  <p className="text-lg font-semibold text-gray-900">${bill.amount}</p>
+                </div>
+                <Button onClick={() => handlePayBill(bill.id)}>Pay</Button>
+              </div>
+            ))}
           </div>
         </motion.div>
       </main>
     </div>
   );
+};
+
+// Function to handle bill payment (you can implement the logic as needed)
+const handlePayBill = (billId: number) => {
+  console.log(`Paying bill with ID: ${billId}`);
+  // Implement payment logic here
 };
 
 export default Dashboard;
