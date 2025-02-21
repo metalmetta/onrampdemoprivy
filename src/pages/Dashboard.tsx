@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
+
 interface Bill {
   id: string;
   vendor: string;
@@ -19,6 +20,7 @@ interface Bill {
   dueDate: Date;
   status: 'UNPAID' | 'PENDING' | 'PAID';
 }
+
 interface TopUp {
   id: string;
   amount: number;
@@ -26,6 +28,7 @@ interface TopUp {
   status: 'PENDING' | 'COMPLETED' | 'FAILED';
   date: Date;
 }
+
 const MOCK_BILLS: Bill[] = [{
   id: '1',
   vendor: 'Electric Company',
@@ -48,6 +51,7 @@ const MOCK_BILLS: Bill[] = [{
   dueDate: new Date(2024, 3, 10),
   status: 'PAID'
 }];
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const {
@@ -70,11 +74,13 @@ const Dashboard = () => {
     chain: base,
     transport: http()
   });
+
   useEffect(() => {
     if (ready && !authenticated) {
       navigate("/");
     }
   }, [ready, authenticated, navigate]);
+
   useEffect(() => {
     const fetchBalance = async () => {
       if (user?.wallet?.address) {
@@ -98,6 +104,7 @@ const Dashboard = () => {
     const intervalId = setInterval(fetchBalance, 30000);
     return () => clearInterval(intervalId);
   }, [user?.wallet?.address, publicClient, toast]);
+
   const handleBridgeFunding = async () => {
     if (!user?.wallet?.address || !bridgeAmount) return;
     try {
@@ -151,6 +158,7 @@ const Dashboard = () => {
       setIsBridging(false);
     }
   };
+
   const handleFundWallet = () => {
     if (!user?.wallet?.address) return;
     const newTopUp: TopUp = {
@@ -166,6 +174,7 @@ const Dashboard = () => {
       amount: "1.00"
     });
   };
+
   const getStatusColor = (status: Bill['status']) => {
     switch (status) {
       case 'UNPAID':
@@ -176,6 +185,7 @@ const Dashboard = () => {
         return 'text-blue-500 bg-blue-50';
     }
   };
+
   const getTopUpStatusColor = (status: TopUp['status']) => {
     switch (status) {
       case 'PENDING':
@@ -186,12 +196,14 @@ const Dashboard = () => {
         return 'text-red-500 bg-red-50';
     }
   };
+
   const handlePayBill = (billId: string) => {
     toast({
       title: "Processing Payment",
       description: "Your payment is being processed."
     });
   };
+
   const usdBalance = parseFloat(balance) * 1890; // Using a fixed ETH/USD rate for demo
   const usdcBalance = usdBalance.toFixed(2); // Same as USD for demo purposes
 
@@ -200,6 +212,7 @@ const Dashboard = () => {
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>;
   }
+
   return <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -236,8 +249,8 @@ const Dashboard = () => {
                   <TooltipTrigger>
                     <Info className="h-4 w-4 text-gray-400" />
                   </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-[200px] text-orange-400">
+                  <TooltipContent className="bg-green-50 text-black">
+                    <p className="max-w-[200px]">
                       When you add money to Fluida it's automatically converted to a digital currency called USDC
                     </p>
                   </TooltipContent>
@@ -331,4 +344,5 @@ const Dashboard = () => {
       </main>
     </div>;
 };
+
 export default Dashboard;
