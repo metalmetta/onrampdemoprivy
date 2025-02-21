@@ -37,17 +37,16 @@ const Index = () => {
             Launching Soon
           </span>
           <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
-            Simplify Your B2B Payments
+            Fluida
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 mb-8 leading-relaxed">
-            Create, send, and manage invoices with integrated crypto payments.
-            Experience seamless transactions with our embedded wallet solution.
+          Instant, Global and Low-cost Payments for your business
           </p>
           <Button
             onClick={handleGetStarted}
             className="h-12 px-8 text-lg animate-fade-in hover:scale-105 transition-transform"
           >
-            Access Fluida
+            Sign up!
           </Button>
         </motion.div>
 
