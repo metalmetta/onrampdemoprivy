@@ -19,6 +19,14 @@ interface Bill {
   status: 'UNPAID' | 'PENDING' | 'PAID';
 }
 
+interface TopUp {
+  id: string;
+  amount: number;
+  method: 'ACH' | 'CARD';
+  status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  date: Date;
+}
+
 const MOCK_BILLS: Bill[] = [
   {
     id: '1',
@@ -54,6 +62,7 @@ const Dashboard = () => {
   const [balance, setBalance] = useState<string>("0");
   const [bridgeAmount, setBridgeAmount] = useState("");
   const [isBridging, setIsBridging] = useState(false);
+  const [topUps, setTopUps] = useState<TopUp[]>([]);
 
   const publicClient = createPublicClient({
     chain: base,
@@ -124,6 +133,15 @@ const Dashboard = () => {
         throw new Error('Bridge funding failed');
       }
 
+      const newTopUp: TopUp = {
+        id: crypto.randomUUID(),
+        amount: parseFloat(bridgeAmount),
+        method: 'ACH',
+        status: 'PENDING',
+        date: new Date(),
+      };
+      setTopUps(prev => [newTopUp, ...prev]);
+
       toast({
         title: "Success",
         description: "Bridge funding initiated successfully",
@@ -143,6 +161,16 @@ const Dashboard = () => {
 
   const handleFundWallet = () => {
     if (!user?.wallet?.address) return;
+    
+    const newTopUp: TopUp = {
+      id: crypto.randomUUID(),
+      amount: 1.00,
+      method: 'CARD',
+      status: 'PENDING',
+      date: new Date(),
+    };
+    setTopUps(prev => [newTopUp, ...prev]);
+    
     fundWallet(user.wallet.address, {
       chain: base,
       amount: "1.00"
@@ -157,6 +185,17 @@ const Dashboard = () => {
         return 'text-gray-500 bg-gray-50';
       case 'PAID':
         return 'text-blue-500 bg-blue-50';
+    }
+  };
+
+  const getTopUpStatusColor = (status: TopUp['status']) => {
+    switch (status) {
+      case 'PENDING':
+        return 'text-yellow-500 bg-yellow-50';
+      case 'COMPLETED':
+        return 'text-green-500 bg-green-50';
+      case 'FAILED':
+        return 'text-red-500 bg-red-50';
     }
   };
 
@@ -186,12 +225,12 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 space-y-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
         >
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-sm font-medium text-gray-500 mb-1">Wallet Address</h3>
@@ -266,6 +305,41 @@ const Dashboard = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="bg-white rounded-lg shadow-sm p-6"
+        >
+          <h2 className="text-lg font-semibold text-gray-900 mb-6">Top-ups</h2>
+          <div className="divide-y">
+            {topUps.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No top-ups yet. Add funds to your wallet to see them here.
+              </div>
+            ) : (
+              topUps.map((topUp) => (
+                <div key={topUp.id} className="py-4 flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-medium text-gray-900">
+                        Top-up via {topUp.method}
+                      </h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTopUpStatusColor(topUp.status)}`}>
+                        {topUp.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {format(topUp.date, 'MMM d, yyyy HH:mm')}
+                    </p>
+                  </div>
+                  <p className="text-sm font-medium">${topUp.amount.toFixed(2)}</p>
+                </div>
+              ))
+            )}
           </div>
         </motion.div>
       </main>
