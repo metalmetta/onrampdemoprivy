@@ -261,15 +261,29 @@ const Dashboard = () => {
           <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
             <h3 className="text-sm font-medium text-gray-500 mb-1">Fund Wallet</h3>
             <div className="space-y-2">
-              <div className="flex gap-2">
-                <Input type="number" min="0" step="0.01" placeholder="Amount in USD" value={bridgeAmount} onChange={e => setBridgeAmount(e.target.value)} />
-                <Button onClick={handleBridgeFunding} disabled={isBridging || !bridgeAmount}>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Amount in USD"
+                value={bridgeAmount}
+                onChange={(e) => setBridgeAmount(e.target.value)}
+              />
+              <div className="grid grid-cols-1 gap-2">
+                <Button 
+                  onClick={handleBridgeFunding}
+                  disabled={isBridging || !bridgeAmount}
+                  className="w-full"
+                >
                   {isBridging ? "Processing..." : "Top-up via ACH"}
                 </Button>
+                <Button 
+                  onClick={handleFundWallet}
+                  className="w-full"
+                >
+                  Top-up via card
+                </Button>
               </div>
-              <Button className="w-full" onClick={handleFundWallet} variant="outline">
-                Top-up via card
-              </Button>
             </div>
           </div>
         </motion.div>
