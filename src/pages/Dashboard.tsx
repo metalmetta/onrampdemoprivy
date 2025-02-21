@@ -231,7 +231,7 @@ const Dashboard = () => {
                 onClick={handleBridgeFunding}
                 disabled={isBridging || !bridgeAmount}
               >
-                {isBridging ? "Processing..." : "Bridge Funds"}
+                {isBridging ? "Processing..." : "Top-up via ACH"}
               </Button>
             </div>
           </div>
