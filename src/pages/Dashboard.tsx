@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePrivy, useFundWallet } from "@privy-io/react-auth";
@@ -9,6 +8,43 @@ import { base } from "viem/chains";
 import { formatEther } from "viem";
 import { createPublicClient, http } from "viem";
 import { Input } from "@/components/ui/input";
+import { format } from "date-fns";
+
+interface Bill {
+  id: string;
+  vendor: string;
+  amount: number;
+  receivedDate: Date;
+  dueDate: Date;
+  status: 'UNPAID' | 'PENDING' | 'PAID';
+}
+
+const MOCK_BILLS: Bill[] = [
+  {
+    id: '1',
+    vendor: 'Electric Company',
+    amount: 150.00,
+    receivedDate: new Date(2024, 2, 1),
+    dueDate: new Date(2024, 3, 15),
+    status: 'UNPAID'
+  },
+  {
+    id: '2',
+    vendor: 'Water Services',
+    amount: 75.50,
+    receivedDate: new Date(2024, 2, 5),
+    dueDate: new Date(2024, 3, 20),
+    status: 'PENDING'
+  },
+  {
+    id: '3',
+    vendor: 'Internet Provider',
+    amount: 89.99,
+    receivedDate: new Date(2024, 2, 1),
+    dueDate: new Date(2024, 3, 10),
+    status: 'PAID'
+  }
+];
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -113,6 +149,24 @@ const Dashboard = () => {
     });
   };
 
+  const getStatusColor = (status: Bill['status']) => {
+    switch (status) {
+      case 'UNPAID':
+        return 'text-red-500 bg-red-50';
+      case 'PENDING':
+        return 'text-gray-500 bg-gray-50';
+      case 'PAID':
+        return 'text-blue-500 bg-blue-50';
+    }
+  };
+
+  const handlePayBill = (billId: string) => {
+    toast({
+      title: "Processing Payment",
+      description: "Your payment is being processed.",
+    });
+  };
+
   if (!ready || !authenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -183,8 +237,35 @@ const Dashboard = () => {
           transition={{ duration: 0.4, delay: 0.2 }}
           className="bg-white rounded-lg shadow-sm p-6"
         >
-          <div className="text-center py-8 text-gray-500">
-            Your transactions will appear here once you start using your wallet.
+          <h2 className="text-lg font-semibold text-gray-900 mb-6">Recent Bills</h2>
+          <div className="divide-y">
+            {MOCK_BILLS.map((bill) => (
+              <div key={bill.id} className="py-4 flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-gray-900">{bill.vendor}</h3>
+                  <p className="text-sm text-gray-500">
+                    Due: {format(bill.dueDate, 'MMM d, yyyy')}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Received: {format(bill.receivedDate, 'MMM d, yyyy')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <p className="text-sm font-medium">${bill.amount.toFixed(2)}</p>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(bill.status)}`}>
+                    {bill.status}
+                  </span>
+                  <Button 
+                    size="sm"
+                    variant={bill.status === 'PAID' ? 'outline' : 'default'}
+                    disabled={bill.status === 'PAID'}
+                    onClick={() => handlePayBill(bill.id)}
+                  >
+                    {bill.status === 'PAID' ? 'Paid' : 'Pay'}
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         </motion.div>
       </main>
