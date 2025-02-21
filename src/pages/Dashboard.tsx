@@ -29,9 +29,30 @@ const Dashboard = () => {
   const [isSending, setIsSending] = useState(false);
   const [isBridging, setIsBridging] = useState(false);
   const [recentBills, setRecentBills] = useState([
-    { id: 1, description: "Electricity Bill", amount: "50.00" },
-    { id: 2, description: "Water Bill", amount: "30.00" },
-    { id: 3, description: "Internet Bill", amount: "70.00" },
+    { 
+      id: 1, 
+      description: "Acme Limited", 
+      amount: "12000.00", 
+      receivedDate: "2023-10-01", 
+      dueDate: "2023-10-15", 
+      bankAccount: "Account #1234" 
+    },
+    { 
+      id: 2, 
+      description: "SpaceX Inc", 
+      amount: "8500.00", 
+      receivedDate: "2023-10-05", 
+      dueDate: "2023-10-20", 
+      bankAccount: "Account #5678" 
+    },
+    { 
+      id: 3, 
+      description: "Campbell Soup LLC", 
+      amount: "800.00", 
+      receivedDate: "2023-10-10", 
+      dueDate: "2023-10-25", 
+      bankAccount: "Account #9101" 
+    },
   ]);
 
   const publicClient = createPublicClient({
@@ -251,9 +272,12 @@ const Dashboard = () => {
           <div className="space-y-4">
             {recentBills.map((bill) => (
               <div key={bill.id} className="flex justify-between items-center">
-                <div>
+                <div className="flex-1">
                   <p className="text-sm font-medium text-gray-500">{bill.description}</p>
                   <p className="text-lg font-semibold text-gray-900">${bill.amount}</p>
+                  <p className="text-sm text-gray-500">Received: {bill.receivedDate}</p>
+                  <p className="text-sm text-gray-500">Due: {bill.dueDate}</p>
+                  <p className="text-sm text-gray-500">Bank Account: {bill.bankAccount}</p>
                 </div>
                 <Button onClick={() => handlePayBill(bill.id)}>Pay</Button>
               </div>
