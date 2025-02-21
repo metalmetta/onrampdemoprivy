@@ -9,6 +9,12 @@ import { formatEther } from "viem";
 import { createPublicClient, http } from "viem";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 interface Bill {
   id: string;
@@ -206,6 +212,9 @@ const Dashboard = () => {
     });
   };
 
+  const usdBalance = parseFloat(balance) * 1890; // Using a fixed ETH/USD rate for demo
+  const usdcBalance = (usdBalance).toFixed(2); // Same as USD for demo purposes
+
   if (!ready || !authenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -238,7 +247,24 @@ const Dashboard = () => {
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
             <h3 className="text-sm font-medium text-gray-500 mb-1">Balance</h3>
-            <p className="text-2xl font-semibold text-gray-900">{balance} ETH</p>
+            <div className="space-y-2">
+              <p className="text-2xl font-semibold text-gray-900">
+                ${usdBalance.toFixed(2)} USD
+              </p>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <span>{usdcBalance} USDC</span>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-gray-400" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-[200px]">
+                      When you add money to Fluida it's automatically converted to a digital currency called USDC
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
             <h3 className="text-sm font-medium text-gray-500 mb-1">Fund Wallet</h3>
