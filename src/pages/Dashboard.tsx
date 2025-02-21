@@ -245,11 +245,11 @@ const Dashboard = () => {
             </h2>
             <Dialog>
               <DialogTrigger asChild>
-                <Button>Send ETH</Button>
+                <Button>Pay Bill</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Send ETH</DialogTitle>
+                  <DialogTitle>Pay Bill</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
