@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePrivy, useFundWallet } from "@privy-io/react-auth";
@@ -25,7 +26,9 @@ const Dashboard = () => {
   const [balance, setBalance] = useState<string>("0");
   const [recipientAddress, setRecipientAddress] = useState("");
   const [amount, setAmount] = useState("");
+  const [bridgeAmount, setBridgeAmount] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [isBridging, setIsBridging] = useState(false);
 
   const publicClient = createPublicClient({
     chain: base,
@@ -66,6 +69,56 @@ const Dashboard = () => {
     return () => clearInterval(intervalId);
   }, [user?.wallet?.address, publicClient, toast]);
 
+  const handleBridgeFunding = async () => {
+    if (!user?.wallet?.address || !bridgeAmount) return;
+    
+    try {
+      setIsBridging(true);
+      
+      const response = await fetch('https://api.sandbox.bridge.xyz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Api-Key': process.env.BRIDGE_API_KEY || '', // We'll set this up later
+          'Idempotency-Key': crypto.randomUUID(),
+        },
+        body: JSON.stringify({
+          amount: bridgeAmount,
+          on_behalf_of: "user_" + user.wallet.address.slice(2, 10),
+          developer_fee: "0.5",
+          source: {
+            payment_rail: "ach_push",
+            currency: "usd",
+          },
+          destination: {
+            payment_rail: "ethereum",
+            currency: "usdc",
+            to_address: user.wallet.address,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Bridge funding failed');
+      }
+
+      toast({
+        title: "Success",
+        description: "Bridge funding initiated successfully",
+      });
+      setBridgeAmount("");
+    } catch (error) {
+      console.error("Error initiating bridge funding:", error);
+      toast({
+        title: "Error",
+        description: "Failed to initiate bridge funding",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBridging(false);
+    }
+  };
+
   const handleSendEth = async () => {
     if (!user?.wallet) return;
     
@@ -73,11 +126,13 @@ const Dashboard = () => {
       setIsSending(true);
       const amountInWei = parseEther(amount);
       
-      await user.wallet.sendTransaction({
+      const tx = await user.wallet.sendTransaction({
         to: recipientAddress,
         value: amountInWei,
         chainId: base.id
       });
+
+      await tx.wait(); // Wait for transaction confirmation
 
       toast({
         title: "Success",
@@ -157,9 +212,24 @@ const Dashboard = () => {
             <h3 className="text-sm font-medium text-gray-500 mb-1">Balance</h3>
             <p className="text-2xl font-semibold text-gray-900">{balance} ETH</p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Network</h3>
-            <p className="text-lg font-semibold text-gray-900">Base</p>
+          <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
+            <h3 className="text-sm font-medium text-gray-500 mb-1">Fund Wallet</h3>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Amount in USD"
+                value={bridgeAmount}
+                onChange={(e) => setBridgeAmount(e.target.value)}
+              />
+              <Button 
+                onClick={handleBridgeFunding}
+                disabled={isBridging || !bridgeAmount}
+              >
+                {isBridging ? "Processing..." : "Bridge Funds"}
+              </Button>
+            </div>
           </div>
         </motion.div>
 
