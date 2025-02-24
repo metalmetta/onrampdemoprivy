@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { base } from "viem/chains";
-import { formatEther } from "viem";
+import { formatEther, parseEther } from "viem";
 import { createPublicClient, http } from "viem";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -54,18 +54,9 @@ const MOCK_BILLS: Bill[] = [{
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const {
-    ready,
-    authenticated,
-    user,
-    logout
-  } = usePrivy();
-  const {
-    toast
-  } = useToast();
-  const {
-    fundWallet
-  } = useFundWallet();
+  const { ready, authenticated, user, sendTransaction } = usePrivy();
+  const { toast } = useToast();
+  const { fundWallet } = useFundWallet();
   const [balance, setBalance] = useState<string>("0");
   const [bridgeAmount, setBridgeAmount] = useState("");
   const [isBridging, setIsBridging] = useState(false);
@@ -201,11 +192,51 @@ const Dashboard = () => {
     }
   };
 
-  const handlePayBill = (billId: string) => {
-    toast({
-      title: "Processing Payment",
-      description: "Your payment is being processed."
-    });
+  const handlePayBill = async (billId: string, amount: number, vendor: string) => {
+    if (!user?.wallet?.address) {
+      toast({
+        title: "Error",
+        description: "Wallet not connected",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "Processing Payment",
+        description: "Please confirm the transaction in your wallet"
+      });
+
+      // Convert USD amount to ETH (using a mock conversion rate for demo)
+      const ethAmount = (amount / 1890).toString(); // Using same conversion rate as in dashboard
+      
+      const txHash = await sendTransaction({
+        to: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e", // Example vendor address
+        value: parseEther(ethAmount),
+        chainId: base.id,
+      });
+
+      toast({
+        title: "Payment Sent",
+        description: `Payment of $${amount} sent to ${vendor}`
+      });
+
+      // Update the bill status in the UI
+      const updatedBills = MOCK_BILLS.map(bill => 
+        bill.id === billId ? { ...bill, status: 'PENDING' as const } : bill
+      );
+      // Note: In a real app, you would update this in a database
+      MOCK_BILLS.splice(0, MOCK_BILLS.length, ...updatedBills);
+
+    } catch (error) {
+      console.error("Payment failed:", error);
+      toast({
+        title: "Payment Failed",
+        description: "Failed to process payment. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const usdBalance = parseFloat(balance) * 1890; // Using a fixed ETH/USD rate for demo
@@ -320,7 +351,12 @@ const Dashboard = () => {
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(bill.status)}`}>
                     {bill.status}
                   </span>
-                  <Button size="sm" variant={bill.status === 'PAID' ? 'outline' : 'default'} disabled={bill.status === 'PAID'} onClick={() => handlePayBill(bill.id)}>
+                  <Button 
+                    size="sm" 
+                    variant={bill.status === 'PAID' ? 'outline' : 'default'} 
+                    disabled={bill.status === 'PAID'} 
+                    onClick={() => handlePayBill(bill.id, bill.amount, bill.vendor)}
+                  >
                     {bill.status === 'PAID' ? 'Paid' : 'Pay'}
                   </Button>
                 </div>
