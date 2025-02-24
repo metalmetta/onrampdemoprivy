@@ -54,17 +54,13 @@ const MOCK_BILLS: Bill[] = [{
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { ready, authenticated, user, sendTransaction } = usePrivy();
+  const { ready, authenticated, user, sendTransaction, connectWallet, logout } = usePrivy();
   const { toast } = useToast();
   const { fundWallet } = useFundWallet();
   const [balance, setBalance] = useState<string>("0");
   const [bridgeAmount, setBridgeAmount] = useState("");
   const [isBridging, setIsBridging] = useState(false);
   const [topUps, setTopUps] = useState<TopUp[]>([]);
-  const publicClient = createPublicClient({
-    chain: base,
-    transport: http()
-  });
 
   useEffect(() => {
     if (ready && !authenticated) {
@@ -203,6 +199,9 @@ const Dashboard = () => {
     }
 
     try {
+      // First, ensure the wallet is connected
+      await connectWallet(user.wallet.address);
+
       toast({
         title: "Processing Payment",
         description: "Please confirm the transaction in your wallet"
