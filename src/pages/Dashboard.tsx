@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { base } from "viem/chains";
-import { formatEther } from "viem";
+import { formatUnits } from "viem";
 import { createPublicClient, http } from "viem";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -52,6 +52,14 @@ const MOCK_BILLS: Bill[] = [{
   status: 'PAID'
 }];
 
+const USDC_ABI = [{
+  "inputs": [{"name": "account", "type": "address"}],
+  "name": "balanceOf",
+  "outputs": [{"name": "", "type": "uint256"}],
+  "stateMutability": "view",
+  "type": "function"
+}] as const;
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const {
@@ -85,16 +93,20 @@ const Dashboard = () => {
     const fetchBalance = async () => {
       if (user?.wallet?.address) {
         try {
-          const walletBalance = await publicClient.getBalance({
-            address: user.wallet.address as `0x${string}`
+          const usdcBalance = await publicClient.readContract({
+            address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+            abi: USDC_ABI,
+            functionName: 'balanceOf',
+            args: [user.wallet.address as `0x${string}`]
           });
-          const formattedBalance = parseFloat(formatEther(walletBalance)).toFixed(6);
+          
+          const formattedBalance = parseFloat(formatUnits(usdcBalance, 6)).toFixed(2);
           setBalance(formattedBalance);
         } catch (error) {
-          console.error("Error fetching balance:", error);
+          console.error("Error fetching USDC balance:", error);
           toast({
             title: "Error",
-            description: "Failed to fetch wallet balance",
+            description: "Failed to fetch USDC balance",
             variant: "destructive"
           });
         }
@@ -208,8 +220,8 @@ const Dashboard = () => {
     });
   };
 
-  const usdBalance = parseFloat(balance) * 1890; // Using a fixed ETH/USD rate for demo
-  const usdcBalance = usdBalance.toFixed(2); // Same as USD for demo purposes
+  const usdBalance = parseFloat(balance);
+  const usdcBalance = balance;
 
   if (!ready || !authenticated) {
     return <div className="min-h-screen flex items-center justify-center">
