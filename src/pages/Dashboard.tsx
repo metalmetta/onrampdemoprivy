@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { base } from "viem/chains";
-import { formatUnits, parseUnits, encodeFunctionData } from "viem";
+import { formatUnits, parseUnits } from "viem";
 import { createPublicClient, http } from "viem";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -53,15 +53,10 @@ const MOCK_BILLS: Bill[] = [{
 }];
 
 const USDC_ABI = [{
-  "constant": false,
-  "inputs": [
-    { "name": "_to", "type": "address" },
-    { "name": "_value", "type": "uint256" }
-  ],
-  "name": "transfer",
-  "outputs": [{ "name": "", "type": "bool" }],
-  "payable": false,
-  "stateMutability": "nonpayable",
+  "inputs": [{"name": "account", "type": "address"}],
+  "name": "balanceOf",
+  "outputs": [{"name": "", "type": "uint256"}],
+  "stateMutability": "view",
   "type": "function"
 }] as const;
 
@@ -71,7 +66,7 @@ const Dashboard = () => {
     ready,
     authenticated,
     user,
-    sendTransaction
+    logout
   } = usePrivy();
   const { toast } = useToast();
   const { fundWallet } = useFundWallet();
@@ -234,21 +229,18 @@ const Dashboard = () => {
     try {
       const amountInUSDC = parseUnits(bill.amount.toString(), 6);
       
-      const data = encodeFunctionData({
-        abi: USDC_ABI,
-        functionName: 'transfer',
-        args: [user.wallet.address, amountInUSDC]
-      });
-
-      const txHash = await sendTransaction({
+      const txRequest = {
         chainId: base.id,
         to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-        data,
-      });
+        data: '0x',
+        value: amountInUSDC
+      };
+      
+      const txnHash = await user.wallet.write(txRequest);
 
       toast({
         title: "Payment Sent",
-        description: `Payment of $${bill.amount} is being processed. Transaction: ${txHash}`
+        description: `Payment of $${bill.amount} is being processed. Transaction: ${txnHash}`
       });
 
       const updatedBills = MOCK_BILLS.map(b => 
@@ -380,8 +372,13 @@ const Dashboard = () => {
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(bill.status)}`}>
                     {bill.status}
                   </span>
-                  <Button size="sm" variant={bill.status === 'PAID' ? 'outline' : 'default'} disabled={bill.status === 'PAID'} onClick={() => handlePayBill(bill.id)}>
-                    {bill.status === 'PAID' ? 'Paid' : 'Pay'}
+                  <Button 
+                    size="sm" 
+                    variant={bill.status === 'PAID' ? 'outline' : 'default'} 
+                    disabled={bill.status === 'PAID' || processingPayment === bill.id} 
+                    onClick={() => handlePayBill(bill.id)}
+                  >
+                    {processingPayment === bill.id ? 'Processing...' : bill.status === 'PAID' ? 'Paid' : 'Pay'}
                   </Button>
                 </div>
               </div>)}
