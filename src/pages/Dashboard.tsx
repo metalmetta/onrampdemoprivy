@@ -229,16 +229,18 @@ const Dashboard = () => {
     try {
       const amountInUSDC = parseUnits(bill.amount.toString(), 6);
       
-      const txn = await user.wallet.sendTransaction({
-        chain: base,
+      const txRequest = {
+        chainId: base.id,
         to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
         data: '0x',
         value: amountInUSDC
-      });
+      };
+      
+      const txnHash = await user.wallet.write(txRequest);
 
       toast({
         title: "Payment Sent",
-        description: `Payment of $${bill.amount} is being processed. Transaction: ${txn.hash}`
+        description: `Payment of $${bill.amount} is being processed. Transaction: ${txnHash}`
       });
 
       const updatedBills = MOCK_BILLS.map(b => 
