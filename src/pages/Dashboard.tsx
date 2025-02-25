@@ -81,7 +81,7 @@ const Dashboard = () => {
   const [topUps, setTopUps] = useState<TopUp[]>([]);
   const publicClient = createPublicClient({
     chain: base,
-    transport: http('https://base-mainnet.infura.io/v3/your-api-key-here')
+    transport: http('https://base-mainnet.infura.io/v3/2438b59c8f314b768531a7abb4039f84')
   });
 
   useEffect(() => {
