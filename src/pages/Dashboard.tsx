@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePrivy, useFundWallet } from "@privy-io/react-auth";
@@ -80,7 +81,7 @@ const Dashboard = () => {
   const [topUps, setTopUps] = useState<TopUp[]>([]);
   const publicClient = createPublicClient({
     chain: base,
-    transport: http()
+    transport: http('https://base-mainnet.infura.io/v3/your-api-key-here')
   });
 
   useEffect(() => {
