@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePrivy, useFundWallet } from "@privy-io/react-auth";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { base } from "viem/chains";
-import { formatUnits } from "viem";
+import { formatUnits, parseUnits, encodeFunctionData } from "viem";
 import { createPublicClient, http } from "viem";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -54,10 +53,15 @@ const MOCK_BILLS: Bill[] = [{
 }];
 
 const USDC_ABI = [{
-  "inputs": [{"name": "account", "type": "address"}],
-  "name": "balanceOf",
-  "outputs": [{"name": "", "type": "uint256"}],
-  "stateMutability": "view",
+  "constant": false,
+  "inputs": [
+    { "name": "_to", "type": "address" },
+    { "name": "_value", "type": "uint256" }
+  ],
+  "name": "transfer",
+  "outputs": [{ "name": "", "type": "bool" }],
+  "payable": false,
+  "stateMutability": "nonpayable",
   "type": "function"
 }] as const;
 
@@ -67,18 +71,16 @@ const Dashboard = () => {
     ready,
     authenticated,
     user,
-    logout
+    sendTransaction
   } = usePrivy();
-  const {
-    toast
-  } = useToast();
-  const {
-    fundWallet
-  } = useFundWallet();
+  const { toast } = useToast();
+  const { fundWallet } = useFundWallet();
   const [balance, setBalance] = useState<string>("0");
   const [bridgeAmount, setBridgeAmount] = useState("");
   const [isBridging, setIsBridging] = useState(false);
   const [topUps, setTopUps] = useState<TopUp[]>([]);
+  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
+  
   const publicClient = createPublicClient({
     chain: base,
     transport: http('https://base-mainnet.infura.io/v3/2438b59c8f314b768531a7abb4039f84')
@@ -214,11 +216,56 @@ const Dashboard = () => {
     }
   };
 
-  const handlePayBill = (billId: string) => {
-    toast({
-      title: "Processing Payment",
-      description: "Your payment is being processed."
-    });
+  const handlePayBill = async (billId: string) => {
+    if (!user?.wallet?.address) {
+      toast({
+        title: "Error",
+        description: "No wallet connected",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const bill = MOCK_BILLS.find(b => b.id === billId);
+    if (!bill) return;
+
+    setProcessingPayment(billId);
+    
+    try {
+      const amountInUSDC = parseUnits(bill.amount.toString(), 6);
+      
+      const data = encodeFunctionData({
+        abi: USDC_ABI,
+        functionName: 'transfer',
+        args: [user.wallet.address, amountInUSDC]
+      });
+
+      const txHash = await sendTransaction({
+        chainId: base.id,
+        to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        data,
+      });
+
+      toast({
+        title: "Payment Sent",
+        description: `Payment of $${bill.amount} is being processed. Transaction: ${txHash}`
+      });
+
+      const updatedBills = MOCK_BILLS.map(b => 
+        b.id === billId ? { ...b, status: 'PENDING' as const } : b
+      );
+      // Note: In a real app, you would update this in your backend
+
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast({
+        title: "Payment Failed",
+        description: "Failed to process payment. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessingPayment(null);
+    }
   };
 
   const usdBalance = parseFloat(balance);
