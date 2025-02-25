@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePrivy, useFundWallet } from "@privy-io/react-auth";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { base } from "viem/chains";
-import { formatUnits, parseUnits } from "viem";
+import { formatUnits } from "viem";
 import { createPublicClient, http } from "viem";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -68,14 +69,16 @@ const Dashboard = () => {
     user,
     logout
   } = usePrivy();
-  const { toast } = useToast();
-  const { fundWallet } = useFundWallet();
+  const {
+    toast
+  } = useToast();
+  const {
+    fundWallet
+  } = useFundWallet();
   const [balance, setBalance] = useState<string>("0");
   const [bridgeAmount, setBridgeAmount] = useState("");
   const [isBridging, setIsBridging] = useState(false);
   const [topUps, setTopUps] = useState<TopUp[]>([]);
-  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
-  
   const publicClient = createPublicClient({
     chain: base,
     transport: http('https://base-mainnet.infura.io/v3/2438b59c8f314b768531a7abb4039f84')
@@ -211,53 +214,11 @@ const Dashboard = () => {
     }
   };
 
-  const handlePayBill = async (billId: string) => {
-    if (!user?.wallet?.address) {
-      toast({
-        title: "Error",
-        description: "No wallet connected",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const bill = MOCK_BILLS.find(b => b.id === billId);
-    if (!bill) return;
-
-    setProcessingPayment(billId);
-    
-    try {
-      const amountInUSDC = parseUnits(bill.amount.toString(), 6);
-      
-      const txRequest = {
-        chainId: base.id,
-        to: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-        data: '0x',
-        value: amountInUSDC
-      };
-      
-      const txnHash = await user.wallet.write(txRequest);
-
-      toast({
-        title: "Payment Sent",
-        description: `Payment of $${bill.amount} is being processed. Transaction: ${txnHash}`
-      });
-
-      const updatedBills = MOCK_BILLS.map(b => 
-        b.id === billId ? { ...b, status: 'PENDING' as const } : b
-      );
-      // Note: In a real app, you would update this in your backend
-
-    } catch (error) {
-      console.error("Payment error:", error);
-      toast({
-        title: "Payment Failed",
-        description: "Failed to process payment. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setProcessingPayment(null);
-    }
+  const handlePayBill = (billId: string) => {
+    toast({
+      title: "Processing Payment",
+      description: "Your payment is being processed."
+    });
   };
 
   const usdBalance = parseFloat(balance);
@@ -372,13 +333,8 @@ const Dashboard = () => {
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(bill.status)}`}>
                     {bill.status}
                   </span>
-                  <Button 
-                    size="sm" 
-                    variant={bill.status === 'PAID' ? 'outline' : 'default'} 
-                    disabled={bill.status === 'PAID' || processingPayment === bill.id} 
-                    onClick={() => handlePayBill(bill.id)}
-                  >
-                    {processingPayment === bill.id ? 'Processing...' : bill.status === 'PAID' ? 'Paid' : 'Pay'}
+                  <Button size="sm" variant={bill.status === 'PAID' ? 'outline' : 'default'} disabled={bill.status === 'PAID'} onClick={() => handlePayBill(bill.id)}>
+                    {bill.status === 'PAID' ? 'Paid' : 'Pay'}
                   </Button>
                 </div>
               </div>)}
